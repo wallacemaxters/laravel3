@@ -1,0 +1,17 @@
+{
+    "name": "wallacemaxters/laravel3",
+    "description": "A package for resolution limitations of Eloquent of Laravel3",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Wallace de Souza Vizerra",
+            "email": "wallacemaxters@gmail.com"
+        }
+    ],
+    "require": {},
+    "autoload" : {
+        "psr-4" : {
+            "WallaceMaxters\\Laravel3\\" : "src/laravel3"
+        }
+    }
+}
