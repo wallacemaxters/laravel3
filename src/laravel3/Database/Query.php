@@ -39,14 +39,4 @@ class Query extends LaravelQuery
 		return $this;
 	}
 
-	public function to_sql()
-	{
-		if (! count($this->table->selects)) {
-
-		    $this->table->select();
-		}
-
-		return $this->table->grammar->select($this);
-	}
-
 }
