@@ -2,6 +2,8 @@
 
 namespace WallaceMaxters\Laravel3\Database\Incandescent;
 
+use WallaceMaxters\Laravel3\Support\Collection;
+
 /**
 * @package Laravel3
 * @author Wallace de Souza Vizerra <wallacemaxters@gmail.com>
@@ -45,7 +47,7 @@ abstract class Incandescent extends Model implements JsonSerializable
             }
         }
 
-        $attributes;
+        return $attributes;
     }
 
     /**

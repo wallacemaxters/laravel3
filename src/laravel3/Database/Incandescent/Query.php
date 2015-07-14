@@ -2,11 +2,13 @@
 
 namespace WallaceMaxters\Laravel3\Database\Incandescent;
 
+
 use Closure;
 use DateTime;
 use Laravel\Database\Expression;
 use Laravel\Database\Eloquent\Relationships;
 use Laravel\Database\Eloquent\Query as EloquentQuery;
+use WallaceMaxters\Laravel3\Support\Collection;
 
 /**
 * @author Wallace de Souza Vizerra <wallacemaxters@gmail.com>
@@ -145,5 +147,9 @@ class Query extends EloquentQuery
 		return $this;
 	}
 
+	public function get_collection()
+	{
+		return new Collection($this->get());
+	}
 
 }
