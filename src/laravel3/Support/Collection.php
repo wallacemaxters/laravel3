@@ -2,12 +2,12 @@
 
 namespace WallaceMaxters\Laravel3\Support;
 
+use Closure;
+use Countable;
 use ArrayAccess;
 use ArrayIterator;
-use IteratorAggregate;
-use Countable;
-use Closure;
 use JsonSerializable;
+use IteratorAggregate;
 use Laravel\Database\Eloquent\Model;
 
 class Collection implements ArrayAccess, IteratorAggregate, Countable, JsonSerializable
@@ -123,6 +123,7 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, JsonSeria
         {
             return !$callback($value);
         });
+
     }
 
     public function first()
