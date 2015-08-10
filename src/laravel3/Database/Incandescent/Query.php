@@ -6,9 +6,9 @@ namespace WallaceMaxters\Laravel3\Database\Incandescent;
 use Closure;
 use DateTime;
 use Laravel\Database\Expression;
-use Laravel\Database\Eloquent\Relationships;
-use Laravel\Database\Eloquent\Query as EloquentQuery;
+use WallaceMaxters\Laravel3\Database\Incandescent\Relationships;
 use WallaceMaxters\Laravel3\Support\Collection;
+use Laravel\Database\Eloquent\Query as EloquentQuery;
 
 /**
 * @author Wallace de Souza Vizerra <wallacemaxters@gmail.com>
@@ -81,25 +81,18 @@ class Query extends EloquentQuery
 
 		$query->select_aggregate('count', '*');
 
-	    if ($relationship instanceof Relationships\Has_One_Or_Many) {
+	    if ($relationship instanceof Relationships\HasOneOrMany) {
 
 	    	$foreign =  $associated->table(). '.' .$relationship->foreign_key();
 
 	    	$key = $this->model->table() . '.' . $this->model->key();
 
-	    } elseif ($relationship instanceof Relationships\Has_Many_And_Belongs_To)  {
+	    } elseif ($relationship instanceof Relationships\BelongsToMany) {
 
 
 	    	$associated = $relationship->model;
 	    	
-	    	// Gambiarra brasileira
-	    	// Não gosto, mas não teve jeito :(
-
-	    	$reflection = new \ReflectionMethod(get_class($relationship), 'other_key');
-
-	    	$reflection->setAccessible(true);
-
-	    	$other = $reflection->invoke($relationship);
+	    	$other = $relationship->other_key();
 
 	    	$key = $this->model->table() . '.' . $this->model->key();
 
@@ -150,6 +143,65 @@ class Query extends EloquentQuery
 	public function get_collection()
 	{
 		return new Collection($this->get());
+	}
+
+	/**
+	 * Hydrate an array of models from the given results.
+	 *
+	 * @param  Model  $model
+	 * @param  array  $results
+	 * @return array
+	 */
+	public function hydrate($model, $results)
+	{
+
+		$class = get_class($model);
+
+		$models = array();
+
+		// We'll spin through the array of database results and hydrate a model
+		// for each one of the records. We will also set the "exists" flag to
+		// "true" so that the model will be updated when it is saved.
+		foreach ((array) $results as $result)
+		{
+			$result = (array) $result;
+
+			$new = new $class(array(), true);
+
+			// We need to set the attributes manually in case the accessible property is
+			// set on the array which will prevent the mass assignemnt of attributes if
+			// we were to pass them in using the constructor or fill methods.
+			$new->fill_raw($result);
+
+			$models[] = $new;
+		}
+
+		if (count($results) > 0)
+		{
+			foreach ($this->model_includes() as $relationship => $constraints)
+			{
+				// If the relationship is nested, we will skip loading it here and let
+				// the load method parse and set the nested eager loads on the right
+				// relationship when it is getting ready to eager load.
+				if (str_contains($relationship, '.'))
+				{
+					continue;
+				}
+
+				$this->load($models, $relationship, $constraints);
+			}
+		}
+
+		// The many to many relationships may have pivot table column on them
+		// so we will call the "clean" method on the relationship to remove
+		// any pivot columns that are on the model.
+		if ($this instanceof Relationships\BelongsToMany)
+		{
+
+			$this->hydrate_pivot($models);
+		}
+
+		return $models;
 	}
 
 }

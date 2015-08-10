@@ -5,7 +5,7 @@ namespace WallaceMaxters\Laravel3\Database\Incandescent;
 use JsonSerializable; 
 use Laravel\Database\Eloquent\Model;
 use WallaceMaxters\Laravel3\Support\Collection;
-use WallaceMaxters\Laravel3\Database\Incandescent\Relationships\BelongsToMany;
+use WallaceMaxters\Laravel3\Database\Incandescent\Relationships;
 
 /**
 * @package Laravel3
@@ -101,7 +101,55 @@ abstract class Incandescent extends Model implements JsonSerializable
 
     public function has_many_and_belongs_to($model, $table = NULL, $foreign = NULL, $other = NULL)
     {
-        return new BelongsToMany($this, $model, $table, $foreign, $other);
+        return new Relationships\BelongsToMany($this, $model, $table, $foreign, $other);
+    }
+
+    /**
+     * Get the query for a one-to-one (inverse) relationship.
+     *
+     * @param  string        $model
+     * @param  string        $foreign
+     * @return Relationship
+     */
+    public function belongs_to($model, $foreign = null)
+    {
+        // If no foreign key is specified for the relationship, we will assume that the
+        // name of the calling function matches the foreign key. For example, if the
+        // calling function is "manager", we'll assume the key is "manager_id".
+        if (is_null($foreign))
+        {
+            list(, $caller) = debug_backtrace(false);
+
+            $foreign = "{$caller['function']}_id";
+        }
+
+        return new Relationships\BelongsTo($this, $model, $foreign);
+    }
+
+    /**
+     * Get the query for a one-to-one / many association.
+     *
+     * @param  string        $type
+     * @param  string        $model
+     * @param  string        $foreign
+     * @return Relationship
+     */
+    protected function has_one_or_many($type, $model, $foreign)
+    {
+        
+        if ($type == 'has_one')
+        {
+            return new Relationships\HasOne($this, $model, $foreign);
+        }
+        else
+        {
+            return new Relationships\HasMany($this, $model, $foreign);
+        }
+    }
+
+    public function get_collection()
+    {
+        return $this->_query()->get_collection();
     }
 
 }
