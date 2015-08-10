@@ -14,6 +14,8 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, JsonSeria
 {
     protected $items = array();
 
+    protected static $macros = array();
+
     public function __construct(array $items = array())
     {
         $this->items = $items;
@@ -66,9 +68,19 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, JsonSeria
         return array_pop($this->items);
     }
 
-    public function search($key)
+    public function search($search)
     {
-        return array_search($key, $this->items);
+        if ($search instanceof Closure) {
+
+            foreach ($this->items as $key => $item) {
+
+                if ($search($item, $key)) return $key;
+            }
+
+            return false;
+        }
+
+        return array_search($search, $this->items, true);
     }
 
     public function push($value)
@@ -117,6 +129,8 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, JsonSeria
         return new static(array_filter($this->items));
     }
 
+
+
     public function reject(Closure $callback = null)
     {
         return $this->filter(function ($value) use($callback)
@@ -126,13 +140,35 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, JsonSeria
 
     }
 
-    public function first()
+    public function first(Closure $callback = null)
     {
+        
+        if (null !== $callback) {
+
+            foreach ($this->items as $key => $item) {
+                
+                if ($callback($item, $key)) return $item;
+            }
+
+            return null;
+        }
+
         return count($this->items) > 0 ? reset($this->items) : null;
     }
 
-    public function last()
+    public function last(Closure $callback = null)
     {
+
+        if (null !== $callback) {
+
+            foreach (array_reverse($this->items) as $key => $item) {
+                
+                if ($callback($item, $key)) return $item;
+            }
+
+            return null;    
+        }
+
         return count($this->items) > 0 ? end($this->items) : null;
     }
 
