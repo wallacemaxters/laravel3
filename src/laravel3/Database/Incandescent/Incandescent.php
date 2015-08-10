@@ -2,16 +2,16 @@
 
 namespace WallaceMaxters\Laravel3\Database\Incandescent;
 
+use JsonSerializable; 
+use Laravel\Database\Eloquent\Model;
 use WallaceMaxters\Laravel3\Support\Collection;
+use WallaceMaxters\Laravel3\Database\Incandescent\Relationships\BelongsToMany;
 
 /**
 * @package Laravel3
 * @author Wallace de Souza Vizerra <wallacemaxters@gmail.com>
 * Classe criada para contornas as limitações do Eloquent do Laravel 3
 */
-
-use JsonSerializable; 
-use Laravel\Database\Eloquent\Model;
 
 abstract class Incandescent extends Model implements JsonSerializable 
 {
@@ -96,6 +96,12 @@ abstract class Incandescent extends Model implements JsonSerializable
     protected function _query()
     {
         return new Query($this);
+    }
+
+
+    public function has_many_and_belongs_to($model, $table = NULL, $foreign = NULL, $other = NULL)
+    {
+        return new BelongsToMany($this, $model, $table, $foreign, $other);
     }
 
 }
