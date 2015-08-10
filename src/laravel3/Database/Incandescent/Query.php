@@ -140,10 +140,21 @@ class Query extends EloquentQuery
 		return $this;
 	}
 
+	/**
+	 * @deprecated
+	 * */
+
 	public function get_collection()
 	{
 		return new Collection($this->get());
 	}
+
+	
+	public function collection()
+	{
+		return new Collection($this->get());
+	}
+
 
 	/**
 	 * Hydrate an array of models from the given results.

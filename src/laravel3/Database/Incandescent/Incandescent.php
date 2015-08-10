@@ -147,9 +147,4 @@ abstract class Incandescent extends Model implements JsonSerializable
         }
     }
 
-    public function get_collection()
-    {
-        return $this->_query()->get_collection();
-    }
-
 }
