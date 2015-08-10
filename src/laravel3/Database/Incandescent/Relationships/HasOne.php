@@ -1,6 +1,6 @@
-<?php 
+<?php
 
-namespace Laravel\Database\Eloquent\Relationships;
+namespace WallaceMaxters\Laravel3\Database\Incandescent\Relationships;
 
 class HasOne extends HasOneOrMany {
 
