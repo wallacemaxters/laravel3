@@ -255,7 +255,7 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, JsonSeria
     {
         $items = $this->items;
 
-        $callback ? uasort($items, $callback) : natcasesort($items);
+        $callback ? usort($items, $callback) : natcasesort($items);
 
         return new static($items);
 
@@ -263,18 +263,17 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, JsonSeria
 
     public function sort_by(Closure $callback, $asc = true)
     {
-
+        
         $i = $asc ? 1 : -1;
 
         $items = $this->items;
 
-        uasort($items, function ($value1, $value2) use($callback, $i)
+        usort($items, function ($value1, $value2) use($callback, $i)
         {
             return $i * strcmp($callback($value1), $callback($value2));
         });
 
         return new static($items);
-
     }
 
     
@@ -349,7 +348,7 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, JsonSeria
 
     public function jsonSerialize()
     {
-        return json_encode($this->all());
+        return $this->all();
     }
 
     public function is_empty()
