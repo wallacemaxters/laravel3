@@ -9,6 +9,7 @@ use Laravel\Database\Expression;
 use WallaceMaxters\Laravel3\Database\Incandescent\Relationships;
 use WallaceMaxters\Laravel3\Support\Collection;
 use Laravel\Database\Eloquent\Query as EloquentQuery;
+use WallaceMaxters\Laravel3\Database\Exceptions\ModelNotFoundException;
 
 /**
 * @author Wallace de Souza Vizerra <wallacemaxters@gmail.com>
@@ -213,6 +214,46 @@ class Query extends EloquentQuery
 		}
 
 		return $models;
+	}
+
+	public function find_or_fail($id, array $columns = array('*'))
+	{
+		$result = $this->find($id, $columns);
+
+		if ($result === null) {
+
+			$message = sprintf('No result for model [%s]', get_class($this->model));
+
+			throw new ModelNotFoundException($message);
+		}
+
+		return $result;
+	}
+
+	public function first_or_fail(array $columns = array('*'))
+	{
+		$result = $this->first($id, $columns);
+
+		if  ($result === null) {
+
+			$message = sprintf('No result for model [%s]', get_class($this->model));
+
+			throw new ModelNotFoundException($message);
+		}
+
+		return $result;
+	}
+
+	public function find_or_new($id, array $columns = array('*'))
+	{
+		$result =  $this->find($id, $columns);
+
+		if ($result === null) {
+
+			$result = new $this->model;
+		}
+
+		return $result;
 	}
 
 }
