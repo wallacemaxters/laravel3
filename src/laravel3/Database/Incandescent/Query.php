@@ -232,7 +232,7 @@ class Query extends EloquentQuery
 
 	public function first_or_fail(array $columns = array('*'))
 	{
-		$result = $this->first($id, $columns);
+		$result = $this->first($columns);
 
 		if  ($result === null) {
 
