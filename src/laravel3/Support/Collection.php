@@ -207,7 +207,12 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, JsonSeria
 
     public function unique()
     {
-        return new static(array_unique($this->items));
+        return new static(array_unique($this->items, SORT_REGULAR));
+    }
+
+    public function merge(self $another)
+    {
+        return new static(array_merge($this->items, $another->to_array()));
     }
 
     public function shuffle()
