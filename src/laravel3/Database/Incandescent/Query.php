@@ -64,7 +64,7 @@ class Query extends EloquentQuery
 
     public function where_doesnt_have($relation, Closure $callback)
     {
-        return $this->has($relation, '<', 1, $closure);
+        return $this->has($relation, '<', 1, $callback);
     }
 
     public function doesnt_have($relation)
