@@ -90,31 +90,21 @@ class Query extends EloquentQuery
 
         } elseif ($relationship instanceof Relationships\BelongsToMany) {
 
+            // Change the table name of Subquery
+            
+            $query->table->from = $relationship->pivot()->table->from;
 
             $associated = $relationship->model;
-            
-            $other = $relationship->other_key();
 
             $key = $this->model->table() . '.' . $this->model->key();
 
-            $join_table = $relationship->pivot()->model->table();
-
-            $foreign = $join_table . '.' . $relationship->foreign_key();
-
-            $query->join(
-                $join_table,
-                $join_table . '.' . $other,
-                '=',
-                $associated->table() . '.' . $associated->key()
-            );
-
+            $foreign = $relationship->pivot()->model->table() . '.' . $relationship->foreign_key();
 
         } else {
 
             $key = $associated->table() . '.' . $relationship->foreign_key(); 
 
             $foreign = $associated->table(). '.' . $relationship->model->key();
-            
         }
  
         $query->where($foreign, '=', new Expression($key));
@@ -129,6 +119,17 @@ class Query extends EloquentQuery
         $this->where(new Expression('(' . $sql . ')'), $operator, $value);
 
         return $this;
+    }
+
+    public function setup_self_relation(self $query)
+    {
+        $from = $query->table->from;
+
+        $alias = 'self_' . md5(microtime(true));
+
+        $query->table->from .= ' as ' . $alias;
+
+        $query->table->alias = $alias;
     }
 
     public function select_aggregate($aggregator, $columns)

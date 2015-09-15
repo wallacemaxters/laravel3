@@ -5,6 +5,7 @@ namespace WallaceMaxters\Laravel3\Database\Incandescent\Relationships;
 use Laravel\Str;
 use Laravel\Database\Eloquent\Model;
 use WallaceMaxters\Laravel3\Database\Incandescent\Pivot;
+use WallaceMaxters\Laravel3\Database\Incandescent\Query;
 
 class BelongsToMany extends Relationship {
 
@@ -28,6 +29,12 @@ class BelongsToMany extends Relationship {
 	 * @var array
 	 */
 	protected $with = array();
+
+	/**
+	 * 
+	 **/
+
+	protected $alias;
 
 	/**
 	 * Create a new many to many relationship instance.
@@ -443,4 +450,5 @@ class BelongsToMany extends Relationship {
         
         return $this;
     }
+   
 }
