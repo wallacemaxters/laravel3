@@ -257,4 +257,24 @@ class Query extends EloquentQuery
         return $result;
     }
 
+    public function call_scope($scope, $parameters)
+    {        
+        array_unshift($parameters, $this);
+
+        return call_user_func_array(array($this->model, $scope), $parameters) ?: $this;
+    }
+
+    public function __call($method, $parameters)
+    {
+
+        $scope = 'scope_' . $method;
+
+        if (method_exists($this->model, $scope)) {
+
+            return $this->call_scope($scope, $parameters);
+        }
+
+        return parent::__call($method, $parameters);
+    }
+
 }
