@@ -9,6 +9,7 @@ use Laravel\Database\Expression;
 use WallaceMaxters\Laravel3\Database\Incandescent\Relationships;
 use WallaceMaxters\Laravel3\Support\Collection;
 use Laravel\Database\Eloquent\Query as EloquentQuery;
+
 use WallaceMaxters\Laravel3\Database\Exceptions\ModelNotFoundException;
 
 /**
@@ -72,7 +73,7 @@ class Query extends EloquentQuery
         return $this->has($relation, '<', 1);
     }
 
-    public function has($relation, $operator = '>=', $value = 1, Closure $callback = null)
+    public function has($relation, $operator = '>=', $value = 1, Closure $callback = null, $connector = 'AND')
     {
         $relationship = $this->model->$relation();                                                      
 
@@ -102,11 +103,12 @@ class Query extends EloquentQuery
 
         } else {
 
-            $key = $associated->table() . '.' . $relationship->foreign_key(); 
+            $key = $this->model->table() . '.' . $relationship->foreign_key(); 
 
             $foreign = $associated->table(). '.' . $relationship->model->key();
+
         }
- 
+
         $query->where($foreign, '=', new Expression($key));
 
         if ($callback !== null) {
@@ -116,20 +118,29 @@ class Query extends EloquentQuery
 
         $sql = $query->to_sql();
 
-        $this->where(new Expression('(' . $sql . ')'), $operator, $value);
+        $this->where(new Expression('(' . $sql . ')'), $operator, $value, $connector);
 
         return $this;
     }
 
-    public function setup_self_relation(self $query)
+    public function or_has($relation)
     {
-        $from = $query->table->from;
+        return $this->has($relation, '>=', 1, null, 'OR');
+    }
 
-        $alias = 'self_' . md5(microtime(true));
+    public function or_where_has($relation, Closure $callback)
+    {
+        return $this->has($relation, '>=', 1, $callback, 'OR');
+    }
+    
+    public function or_where_doesnt_have($relation, Closure $callback)
+    {
+        return $this->has($relation, '<', 1, $callback, 'OR');
+    }
 
-        $query->table->from .= ' as ' . $alias;
-
-        $query->table->alias = $alias;
+    public function or_doesnt_have($relation)
+    {
+        return $this->has($relation, '<', 1, null, 'OR');
     }
 
     public function select_aggregate($aggregator, $columns)
@@ -264,6 +275,26 @@ class Query extends EloquentQuery
         return call_user_func_array(array($this->model, $scope), $parameters) ?: $this;
     }
 
+    public function where_nested($callback, $connector = 'AND')
+    {
+        $type = 'where_nested';
+
+        $incandescent = new static($this->model); 
+
+        call_user_func($callback, $incandescent);
+
+        $query = $incandescent->table;
+
+        if ($query->wheres !== null)
+        {
+            $this->table->wheres[] = compact('type', 'query', 'connector');
+        }
+
+        $this->table->bindings = array_merge($this->table->bindings, $query->bindings);
+
+        return $this;
+    }
+
     public function __call($method, $parameters)
     {
 
@@ -275,6 +306,29 @@ class Query extends EloquentQuery
         }
 
         return parent::__call($method, $parameters);
+    }
+
+    public function model_join($model1, $column1, $operator, $column2)
+    {
+        $parent = '\\Laravel\\Database\\Eloquent\\Model';
+
+        if (! is_subclass_of($model1, $parent)) {
+
+            throw new InvalidArgumentException('Is not a children of ' . $parent);
+        }
+
+        $model2 = get_class($this->model);
+
+        $table1 = $model1::$table;
+
+        $table2 = $this->model->table();
+
+        $column_and_table1 = str_ireplace("{$model1}::", "{$table1}.", $column1);
+
+        $column_and_table2 = str_ireplace(array("{$model2}::", 'self::', 'this::'), "{$table2}.", $column2);
+
+        return $this->join($table1, $column_and_table1, $operator, $column_and_table2);
+        
     }
 
 }
