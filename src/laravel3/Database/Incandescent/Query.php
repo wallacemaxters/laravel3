@@ -279,7 +279,7 @@ class Query extends EloquentQuery
     {
         $type = 'where_nested';
 
-        $incandescent = new static($this->model); 
+        $incandescent = new self($this->model); 
 
         call_user_func($callback, $incandescent);
 
