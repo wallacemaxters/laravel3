@@ -256,6 +256,51 @@ class Query extends EloquentQuery
         return $result;
     }
 
+    public function first_or_new(array $attributes, \Closure $callback = null, array $columns = array('*'))
+    {
+        foreach ($attributes as $field => $value) {
+
+            $this->where($field, '=', $value);
+        }
+
+        if ($callback instanceof \Closure) {
+            $callback($this);
+        }
+
+        $result = $this->first($columns);
+
+        if ($result === null) {
+
+            $result = new $this->model;
+
+            $result->fill($attributes);
+        }
+
+        return $result;
+    }
+
+    public function first_or_create(array $attributes, \Closure $callback = null, array $columns = array('*'))
+    {
+        foreach ($attributes as $field => $value) {
+
+            $this->where($field, '=', $value);
+        }
+
+        if ($callback instanceof \Closure) {
+            $callback($this);
+        }
+
+        $result = $this->first($columns);
+
+        if ($result === null) {
+
+            $result = $this->model->create($attributes);
+        }
+
+        return $result;
+    }
+
+
     public function find_or_new($id, array $columns = array('*'))
     {
         $result =  $this->find($id, $columns);
@@ -278,6 +323,7 @@ class Query extends EloquentQuery
     public function where_nested($callback, $connector = 'AND')
     {
         $type = 'where_nested';
+
 
         $incandescent = new self($this->model); 
 

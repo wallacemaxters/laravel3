@@ -147,5 +147,4 @@ abstract class Incandescent extends Model implements JsonSerializable
         }
     }
 
-
 }
