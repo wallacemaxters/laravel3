@@ -353,7 +353,7 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, JsonSeria
 
     public function jsonSerialize()
     {
-        return $this->all();
+        return $this->to_array();
     }
 
     public function is_empty()
@@ -373,7 +373,7 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, JsonSeria
         foreach ($this->items as $key => $item) {
 
             if ($item instanceof Model || $item instanceof self) {
-
+                
                 $item = $item->to_array();
             }
 

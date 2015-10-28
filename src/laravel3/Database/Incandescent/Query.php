@@ -79,7 +79,7 @@ class Query extends EloquentQuery
 
         $associated = $relationship->model;
 
-        $query = new static($relationship->model);                                                      
+        $query = new self($relationship->model);                                                      
 
         $query->select_aggregate('count', '*');
 
@@ -149,7 +149,7 @@ class Query extends EloquentQuery
             'aggregator' => 'count',
             'columns'    => (array) $columns
         );
-
+        
         return $this;
     }
 
