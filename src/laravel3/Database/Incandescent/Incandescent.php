@@ -2,31 +2,41 @@
 
 namespace WallaceMaxters\Laravel3\Database\Incandescent;
 
+use JsonSerializable; 
+use Laravel\Database\Eloquent\Model;
+use WallaceMaxters\Laravel3\Support\Collection;
+use WallaceMaxters\Laravel3\Database\Incandescent\Relationships;
+
 /**
 * @package Laravel3
 * @author Wallace de Souza Vizerra <wallacemaxters@gmail.com>
 * Classe criada para contornas as limitações do Eloquent do Laravel 3
 */
 
-use Laravel\Database\Eloquent\Relationships;
-use Laravel\Database\Eloquent\Model;
-use JsonSerializable;
-
 abstract class Incandescent extends Model implements JsonSerializable 
 {
 
     protected $appends = array();
 
-    /**
-    * Facilita a utilização de json_encode e Response::json
-    * Implementation for JsonSerializable Interface
-    */
+    protected static $global_macros = array();
 
+    protected $macros = array();
+
+    /**
+    * Implementation for JsonSerializable Interface
+    * @return array
+    */
+    
     public function jsonSerialize()
     {
         return array_except($this->to_array(), static::$hidden);
     }
 
+    /**
+    * new implementation for to_array
+    * add append elements for conversion for array
+    * @return array
+    */
     public function to_array()
     {
         $attributes = parent::to_array();
@@ -41,9 +51,13 @@ abstract class Incandescent extends Model implements JsonSerializable
             }
         }
 
-        $attributes;
+        return $attributes;
     }
 
+    /**
+    * Define a new value for appends
+    * @return $this
+    */
     public function set_appends(array $appends)
     {
         $this->appends = $appends;
@@ -51,6 +65,10 @@ abstract class Incandescent extends Model implements JsonSerializable
         return $this;
     }
 
+    /**
+    * Add elements for appends
+    * @return $this
+    */
     public function add_appends($valueOrValues)
     {
 
@@ -59,132 +77,118 @@ abstract class Incandescent extends Model implements JsonSerializable
         return $this;
     }
 
+    /**
+    * Convert model to JSON
+    */
     public function to_json()
     {
         return json_encode($this, JSON_PRETTY_PRINT);
     }
 
+    /**
+    * Convert model to JSON where called as string
+    */
     public function __toString()
     {
         return $this->to_json();
     }
 
     /**
-    * @param string $relation_method
+    * Return new Incandescent Query
+    * @return \WallaceMaxters\Laravel3\Database\Incandescent\Query
     */
-    public static function has($relation_method)
-    {
-        return static::where_relation($relation_method, null, false);
-    }
-
-    /**
-    * @param string $relation_method
-    * @param Closure $closure
-    */
-    public function where_has($relation_method, Closure $closure)
-    {
-        return static::where_relation($relation_method, $closure, false);
-    }
-
-    /**
-    * @param $relation_method
-    */
-
-    public static function doesnt_have($relation_method)
-    {
-        return static::where_relation($relation_method, null, true);
-    }
-
-    /**
-    * @param $relation_method
-    */
-
-    public function where_doesnt_have($relation_method, Closure $closure)
-    {
-        return static::where_relation($relation_method, $closure, true);
-    }
-
-    private static function where_relation($relation_method, Closure $closure = null, $not = false)
-    {
-        $instance = new static; 
-
-        if (! method_exists($instance, $relation_method)) {
-
-            throw new InvalidArgumentException(
-                "Não existe o método de relacionamento {$relation_method}"
-            );
-        }
-
-        return $instance->where(function ($query) use($instance, $relation_method, $closure, $not)
-        {
-
-            $relation = $instance->$relation_method();
-
-            $associated = $relation->model;
-
-            if ($relation instanceof Relationships\Has_One_Or_Many) {
-
-                $foreign = $relation->foreign_key();
-
-                $key = $instance->key();
-
-
-
-            } elseif($relation instanceof Relationships\Has_Many_And_Belongs_To)  {
-
-                $key = $instance->key();
-
-                /*
-                    Utilizamos essa artimanha, pois o laravel 
-                    definiu "Has_Many_And_Belongs_To::other_key"
-                    como protected
-                */
-
-                $method = new ReflectionMethod(get_class($relation), 'other_key');  
-
-                $method->setAccessible(true);
-
-                // Chama o método "other_key"
-
-                $foreign = $method->invoke($relation); 
-
-                // Seleciona a tabela "pivot" e reseta qualquer relacionamento pré-determinado
-                $associated = $relation->pivot()->reset_where();
-
-            } else {
-
-                $foreign = $associated->key(); 
-
-                $key = $relation->foreign_key();
-                
-            }
-
-            // Retorna um array contendo a lista das chaves para relacionamento
-
-            if ($closure !== null) {
-
-                $associated = $associated->where($closure);
-            }
-
-            $list = $associated->where_null($foreign, 'AND', !$not)
-                               ->group_by($foreign)
-                               ->order_by($foreign, 'ASC')
-                               ->lists($foreign);
-
-            if (count($list) == 0) {
-                
-                $list = [0];                
-            }
-
-            // Aplica nosso "where_has"
-
-            return $query->where_in($key, $list, 'AND', $not);
-
-        });
-    }
-
     protected function _query()
     {
         return new Query($this);
     }
+
+
+    public function has_many_and_belongs_to($model, $table = NULL, $foreign = NULL, $other = NULL)
+    {
+        return new Relationships\BelongsToMany($this, $model, $table, $foreign, $other);
+    }
+
+    /**
+     * Get the query for a one-to-one (inverse) relationship.
+     *
+     * @param  string        $model
+     * @param  string        $foreign
+     * @return Relationship
+     */
+    public function belongs_to($model, $foreign = null)
+    {
+        // If no foreign key is specified for the relationship, we will assume that the
+        // name of the calling function matches the foreign key. For example, if the
+        // calling function is "manager", we'll assume the key is "manager_id".
+        if (is_null($foreign))
+        {
+            list(, $caller) = debug_backtrace(false);
+
+            $foreign = "{$caller['function']}_id";
+        }
+
+        return new Relationships\BelongsTo($this, $model, $foreign);
+    }
+
+    /**
+     * Get the query for a one-to-one / many association.
+     *
+     * @param  string        $type
+     * @param  string        $model
+     * @param  string        $foreign
+     * @return Relationship
+     */
+    protected function has_one_or_many($type, $model, $foreign)
+    {
+        
+        if ($type == 'has_one')
+        {
+            return new Relationships\HasOne($this, $model, $foreign);
+        }
+        else
+        {
+            return new Relationships\HasMany($this, $model, $foreign);
+        }
+    }
+
+
+    public static function global_macro($name, Closure $callback)
+    {
+        static::$global_macros[$name] = $callback;
+    }
+
+    public function has_global_macro($name)
+    {
+        return isset(static::$global_macros[$name]);
+    }
+
+    public function macro($name, Closure $callback)
+    {
+        $this->macros[$name] = $callback;
+
+        return $this;
+    }
+
+    public function has_macro($name)
+    {
+        return isset($this->macros[$name]) 
+                && $this->has_global_macro($name);
+    }
+
+    public function call_macro($name, array $parameters)
+    {
+        return call_user_func_array($this->macros[$name], $parameters);
+    }
+
+    public function __call($method, $parameters)
+    {
+
+        if ($this->has_macro($method))
+        {
+            return $this->call_macro($method, $parameters);
+        }
+
+        return parent::__call($method, $parameters);
+    }
+
 }
