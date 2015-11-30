@@ -10,6 +10,7 @@ namespace WallaceMaxters\Laravel3\Database\Incandescent;
 
 use Laravel\Database\Eloquent\Relationships;
 use Laravel\Database\Eloquent\Model;
+use JsonSerializable;
 
 abstract class Incandescent extends Model implements JsonSerializable 
 {
@@ -182,4 +183,8 @@ abstract class Incandescent extends Model implements JsonSerializable
         });
     }
 
+    protected function _query()
+    {
+        return new Query($this);
+    }
 }
