@@ -354,27 +354,4 @@ class Query extends EloquentQuery
         return parent::__call($method, $parameters);
     }
 
-    public function model_join($model1, $column1, $operator, $column2)
-    {
-        $parent = '\\Laravel\\Database\\Eloquent\\Model';
-
-        if (! is_subclass_of($model1, $parent)) {
-
-            throw new InvalidArgumentException('Is not a children of ' . $parent);
-        }
-
-        $model2 = get_class($this->model);
-
-        $table1 = $model1::$table;
-
-        $table2 = $this->model->table();
-
-        $column_and_table1 = str_ireplace("{$model1}::", "{$table1}.", $column1);
-
-        $column_and_table2 = str_ireplace(array("{$model2}::", 'self::', 'this::'), "{$table2}.", $column2);
-
-        return $this->join($table1, $column_and_table1, $operator, $column_and_table2);
-        
-    }
-
 }

@@ -385,7 +385,7 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, JsonSeria
 
     public function to_json()
     {
-        return $this->jsonSerialize();
+        return json_encode($this->jsonSerialize());
     }
 
 

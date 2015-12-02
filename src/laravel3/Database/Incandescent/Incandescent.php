@@ -151,7 +151,6 @@ abstract class Incandescent extends Model implements JsonSerializable
         }
     }
 
-
     public static function global_macro($name, Closure $callback)
     {
         static::$global_macros[$name] = $callback;
